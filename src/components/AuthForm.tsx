@@ -22,7 +22,7 @@ const AuthForm = ({ mode }: { mode: "signup" | "login" }) => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/auth/${mode}`,
+        `https://trello-backend-1tg0.onrender.com/api/auth/${mode}`,
         payload
       );
       console.log("response on login or singup ", response);

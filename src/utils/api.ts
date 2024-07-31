@@ -14,7 +14,7 @@ interface Task {
 
 // Fetch tasks by status
 export const fetchTasksByStatus = async (status: string, userId: string) => {
-  const response = await axios.get(`http://localhost:5000/api/tasks/user/${userId}/status/${status}`, {
+  const response = await axios.get(`https://trello-backend-1tg0.onrender.com/api/tasks/user/${userId}/status/${status}`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -25,7 +25,7 @@ export const fetchTasksByStatus = async (status: string, userId: string) => {
 // Create a new task
 export const createTask = async (task: Task): Promise<any> => {
   try {
-    const response = await axios.post(`http://localhost:5000/api/createtask/user/${task.userId}`, task, {
+    const response = await axios.post(`https://trello-backend-1tg0.onrender.com/api/createtask/user/${task.userId}`, task, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -36,3 +36,23 @@ export const createTask = async (task: Task): Promise<any> => {
     throw error; // Re-throw the error after logging it
   }
 };
+
+
+export const updateTaskStatus = async (taskId: string, newStatus: string) => {
+  try {
+    const response = await axios.patch(`https://trello-backend-1tg0.onrender.com/api/tasks/${taskId}`, { status: newStatus }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    return response.data;
+    
+  } catch (error) {
+    console.error("Failed to update task:", error);
+    throw error; 
+  }
+  
+  
+};
+
+

@@ -1,24 +1,24 @@
-// components/Taskboard.tsx
 import React, { useState, useEffect } from "react";
-import { fetchTasksByStatus, createTask } from "../utils/api";
+import { fetchTasksByStatus, createTask, updateTaskStatus } from "../utils/api";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import TaskCard from "./TaskCard";
 import TaskModal from "./TaskModel";
 import { RiMenu3Fill } from "react-icons/ri";
-import { FaPlus } from "react-icons/fa";
 import { FiPlus } from "react-icons/fi";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { Task } from "../types"; // Ensure correct import of Task type
 
 const Taskboard: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.userId);
 
   const statuses = ["todo", "in-progress", "under-review", "finished"];
 
-  const [tasks, setTasks] = useState<{ [key: string]: any[] }>({
-    todo: [],
+  const [tasks, setTasks] = useState<{ [key: string]: Task[] }>({
+    "todo": [],
     "in-progress": [],
     "under-review": [],
-    finished: [],
+    "finished": [],
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,13 +28,15 @@ const Taskboard: React.FC = () => {
     const loadTasks = async () => {
       if (userId) {
         try {
-          for (const status of statuses) {
-            const tasksData = await fetchTasksByStatus(status, userId);
-            setTasks((prevTasks) => ({
-              ...prevTasks,
-              [status]: tasksData,
-            }));
-          }
+          const tasksData = await Promise.all(
+            statuses.map((status) => fetchTasksByStatus(status, userId))
+          );
+          setTasks(
+            statuses.reduce(
+              (acc, status, index) => ({ ...acc, [status]: tasksData[index] }),
+              {}
+            )
+          );
         } catch (error) {
           console.error("Failed to fetch tasks:", error);
         }
@@ -71,33 +73,94 @@ const Taskboard: React.FC = () => {
     }
   };
 
+  const handleDragEnd = async (result: any) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+
+    const sourceStatus = source.droppableId;
+    const destinationStatus = destination.droppableId;
+
+    if (sourceStatus !== destinationStatus) {
+      try {
+        const task = tasks[sourceStatus].find(
+          (task) => task._id === draggableId
+        );
+
+        if (task) {
+          await updateTaskStatus(draggableId, destinationStatus);
+          setTasks((prevTasks) => {
+            const sourceTasks = prevTasks[sourceStatus].filter(
+              (task) => task._id !== draggableId
+            );
+            const destinationTasks = [
+              ...prevTasks[destinationStatus],
+              { ...task, status: destinationStatus },
+            ];
+
+            return {
+              ...prevTasks,
+              [sourceStatus]: sourceTasks,
+              [destinationStatus]: destinationTasks,
+            };
+          });
+        }
+      } catch (error) {
+        console.error("Failed to update task status:", error);
+      }
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-white ">
-      {statuses.map((status) => (
-        <div key={status} className="flex flex-col">
-          <div className="flex text-gray-600 text-xl justify-between items-center mb-4">
-            <h2 className="  capitalize ">{status.replace("-", " ")}</h2>
-            <RiMenu3Fill />
-          </div>
-          <div className=" ">
-            <div className="flex-grow p-1 space-y-4 max-h-[67vh] overflow-y-scroll">
-              {tasks[status].map((task) => (
-                <TaskCard key={task._id} task={task} />
-              ))}
-            </div>
-            <button
-              className="mt-4 add-new-btn w-full p-2  flex justify-between items-center px-2 text-gray-300 rounded-lg"
-              onClick={() => {
-                setIsModalOpen(true);
-                setModalStatus(status);
-              }}
-            >
-              <h1>Add new</h1>
-              <FiPlus className="text-xl" />
-            </button>
-          </div>
-        </div>
-      ))}
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-white">
+        {statuses.map((status) => (
+          <Droppable key={status} droppableId={status}>
+            {(provided) => (
+              <div
+                className="flex flex-col"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                <div className="flex text-gray-600 text-xl justify-between items-center mb-4">
+                  <h2 className="capitalize">{status.replace("-", " ")}</h2>
+                  <RiMenu3Fill />
+                </div>
+                <div className="flex-grow p-1 space-y-4 max-h-[67vh] overflow-y-scroll">
+                  {tasks[status].map((task: Task, index: number) => (
+                    <Draggable
+                      key={task._id}
+                      draggableId={task._id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <TaskCard task={task} />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+                <button
+                  className="mt-4 add-new-btn w-full p-2 flex justify-between items-center px-2 text-gray-300 rounded-lg"
+                  onClick={() => {
+                    setIsModalOpen(true);
+                    setModalStatus(status);
+                  }}
+                >
+                  <h1>Add new</h1>
+                  <FiPlus className="text-xl" />
+                </button>
+              </div>
+            )}
+          </Droppable>
+        ))}
+      </div>
 
       {isModalOpen && (
         <TaskModal
@@ -106,7 +169,7 @@ const Taskboard: React.FC = () => {
           onSave={handleCreateTask}
         />
       )}
-    </div>
+    </DragDropContext>
   );
 };
 

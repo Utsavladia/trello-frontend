@@ -1,18 +1,19 @@
 import React from "react";
 import { MdOutlineWatchLater } from "react-icons/md";
+import { Task } from "@/types";
 
-// Define the Task interface
-interface Task {
-  _id: string;
-  title: string;
-  description?: string;
-  status: string;
-  priority?: "Low" | "Medium" | "Urgent";
-  deadline?: string;
-  userId: string;
-  customFields?: Record<string, any>;
-  createdAt?: string; // Change to string to handle ISO date strings
-}
+// // Define the Task interface
+// interface Task {
+//   _id: string;
+//   title: string;
+//   description?: string;
+//   status: string;
+//   priority?: "Low" | "Medium" | "Urgent";
+//   deadline?: string;
+//   userId: string;
+//   customFields?: Record<string, any>;
+//   createdAt?: string; // Change to string to handle ISO date strings
+// }
 
 // Define priority colors
 const priorityColors: Record<string, string> = {
