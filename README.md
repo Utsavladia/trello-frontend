@@ -14,8 +14,8 @@ This is a task management application built using Next.js, TypeScript, and React
 
 ## Screenshots
 
-![Task Manager Screenshot](![image](https://github.com/user-attachments/assets/b036049e-1cc4-4d16-a4c9-cc8c66dd2c34)
-)
+![image](https://github.com/user-attachments/assets/b7f2507d-3c99-401a-90d6-b28e69cf5848)
+
 
 ## Setup and Installation
 
