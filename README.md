@@ -4,6 +4,8 @@
 
 This is a task management application built using Next.js, TypeScript, and React Beautiful DnD for drag-and-drop functionality. Users can create, edit, update, and delete tasks, with support for managing tasks across different statuses (e.g., "todo," "in-progress," "under-review," "finished").
 
+## Deployed link [https://utsav-trello.vercel.app/](https://utsav-trello.vercel.app/)
+
 ## Features
 
 - Drag-and-drop task management
