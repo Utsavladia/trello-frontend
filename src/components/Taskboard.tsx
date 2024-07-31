@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchTasksByStatus, createTask, updateTaskStatus } from "../utils/api";
+import { fetchTasksByStatus, createTask, updateTaskStatus, updateTask, deleteTask } from "../utils/api";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import TaskCard from "./TaskCard";
@@ -23,6 +23,8 @@ const Taskboard: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStatus, setModalStatus] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<any>(null);
+
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -70,6 +72,49 @@ const Taskboard: React.FC = () => {
       } catch (error) {
         console.error("Failed to create task:", error);
       }
+    }
+  };
+
+
+  const handleUpdateTask = async (
+    id: string,
+    title: string,
+    description: string,
+    priority: string,
+    deadline: string
+  ) => {
+    try {
+      if(userId){
+      await updateTask(id, { title, description, priority, deadline });
+      // Refresh tasks
+      const tasksData = await Promise.all(
+        statuses.map((status) => fetchTasksByStatus(status, userId))
+      );
+      setTasks(
+        statuses.reduce(
+          (acc, status, index) => ({ ...acc, [status]: tasksData[index] }),
+          {}
+        )
+      );}
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    }
+  };
+
+
+  const handleDeleteTask = async (id: string) => {
+    try {
+      await deleteTask(id);
+      setTasks((prevTasks) => {
+        const updatedTasks = { ...prevTasks };
+        for (const status of Object.keys(updatedTasks)) {
+          updatedTasks[status] = updatedTasks[status].filter((task: any) => task._id !== id);
+        }
+        return updatedTasks;
+      });
+      setEditingTask(null)
+    } catch (error) {
+      console.error('Failed to delete task:', error);
     }
   };
 
@@ -139,7 +184,11 @@ const Taskboard: React.FC = () => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                         >
-                          <TaskCard task={task} />
+                          <TaskCard task={task} onClick={(task) => {
+                                  setEditingTask(task);
+                                  setIsModalOpen(true);
+                                  setModalStatus(status);
+                                }} />
                         </div>
                       )}
                     </Draggable>
@@ -166,7 +215,11 @@ const Taskboard: React.FC = () => {
         <TaskModal
           status={modalStatus!}
           onClose={() => setIsModalOpen(false)}
-          onSave={handleCreateTask}
+          onSave={editingTask ? (title, description, priority, deadline) =>
+            handleUpdateTask(editingTask._id, title, description, priority, deadline)
+          : handleCreateTask}
+          task={editingTask}
+          onDelete = {handleDeleteTask}
         />
       )}
     </DragDropContext>

@@ -50,9 +50,30 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
   } catch (error) {
     console.error("Failed to update task:", error);
     throw error; 
+  }  
+};
+
+
+export const updateTask = async (
+  id: string,
+  updates: { title: string; description: string; priority: string; deadline: string }
+) => {
+  try {
+    const response = await axios.put(`https://trello-backend-1tg0.onrender.com/api/tasks/${id}`, updates);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
   }
-  
-  
+};
+
+export const deleteTask = async (id: string) => {
+  try {
+    await axios.delete(`https://trello-backend-1tg0.onrender.com/api/tasks/${id}`);
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
 };
 
 

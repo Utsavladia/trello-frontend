@@ -3,7 +3,7 @@ export interface Task {
   title: string;
   description?: string; // Optional field
   status: string;
-  priority?: "Low" | "Medium" | "Urgent"; // Optional field
+  priority?:string; // Optional field
   deadline?: Date; // Optional field
   userId: string;
   customFields?: Record<string, any>; // Optional field for custom properties

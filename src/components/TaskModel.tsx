@@ -1,5 +1,5 @@
 // components/TaskModal.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BiCalendar } from "react-icons/bi";
 import { BsSignTurnRight } from "react-icons/bs";
 import { CiCalendar } from "react-icons/ci";
@@ -10,6 +10,7 @@ import { RxCross2 } from "react-icons/rx";
 import { TbShare } from "react-icons/tb";
 import { TfiArrowsCorner } from "react-icons/tfi";
 import { VscArrowBoth } from "react-icons/vsc";
+import { Task } from "@/types";
 
 interface TaskModalProps {
   status: string;
@@ -20,17 +21,36 @@ interface TaskModalProps {
     priority: string,
     deadline: string
   ) => void;
+  onDelete?: (id: string) => void; // Optional delete handler
+  task?: Task;
+
 }
 
-const TaskModal: React.FC<TaskModalProps> = ({ status, onClose, onSave }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("");
-  const [deadline, setDeadline] = useState(""); // Use string for date input
+const TaskModal: React.FC<TaskModalProps> = ({ status, onClose, onSave, task, onDelete }) => {
+  const [title, setTitle] = useState(task?.title || "");
+  const [description, setDescription] = useState(task?.description || "");
+  const [priority, setPriority] = useState(task?.priority || "Low");
+  const [deadline, setDeadline] = useState(task?.deadline ? task.deadline.toISOString().slice(0, 10) : "");
+
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title);
+      setDescription(task.description || "");
+      setPriority(task.priority || "Low");
+      setDeadline(task.deadline ? task.deadline.toISOString().slice(0, 10) : "");
+    }
+  }, [task]);
 
   const handleSave = () => {
     onSave(title, description, priority, deadline);
     onClose();
+  };
+
+  const handleDelete = () => {
+    if (task && onDelete) {
+      onDelete(task?._id);
+      onClose();
+    }
   };
 
   return (
@@ -107,6 +127,15 @@ const TaskModal: React.FC<TaskModalProps> = ({ status, onClose, onSave }) => {
           </div>
         </div>
         <div className="border-[1px] border-gray-500 border-opacity-20 mt-4 w-full"></div>
+        {task && onDelete && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="bg-red-400 absolute bottom-6 left-6 text-white px-4 py-2 rounded-lg  hover:bg-red-600"
+            >
+              Delete
+            </button>
+          )}
 
         {title.length > 0 && (
           <button

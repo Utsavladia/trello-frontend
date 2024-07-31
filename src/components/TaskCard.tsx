@@ -15,6 +15,11 @@ import { Task } from "@/types";
 //   createdAt?: string; // Change to string to handle ISO date strings
 // }
 
+interface TaskCardProps {
+  task: Task;
+  onClick: (task: Task) => void;
+}
+
 // Define priority colors
 const priorityColors: Record<string, string> = {
   Low: "bg-yellow-400",
@@ -56,7 +61,9 @@ const formatRelativeTime = (date: Date): string => {
 };
 
 // TaskCard component
-const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
+
+  
   // Determine the priority class
   const priorityClass = task.priority ? priorityColors[task.priority] : "";
 
@@ -75,7 +82,9 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
   }
 
   return (
-    <div className="bg-gray-50 p-3 rounded-lg outline leading-tight outline-[1px] outline-gray-300 flex flex-col gap-2">
+    <div className="bg-gray-50 p-3 rounded-lg outline leading-tight outline-[1px] outline-gray-300 flex flex-col gap-2"
+    onClick={() => onClick(task)}
+>
       <h3 className="text-lg font-semibold text-gray-600 leading-tight">
         {task.title}
       </h3>
